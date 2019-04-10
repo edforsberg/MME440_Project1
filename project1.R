@@ -148,7 +148,7 @@ errorfunc <- function(data,n,nrcl){
   error/len
 }
 myTest1 <- CreateData(8, 20, 3, 103)
-print(errorfunc(myTest1))
+print(errorfunc(myTest1,5,8))
 
 
 
