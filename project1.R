@@ -125,7 +125,7 @@ ggplot() +
 #ggtitle("LDA")  
 #----------Errors#
   
-errorfunc <- function(data,n,nrcl){
+errorfuncKNN <- function(data,n,nrcl){
   error = 0
   len = length(data[,1])
   for(i in 1:n){
@@ -147,6 +147,19 @@ errorfunc <- function(data,n,nrcl){
   }
   error/len
 }
+
+errorFuncLDA <- function(data, nrClass){
+  error = 0 
+  len = length(data[,1])
+  train = data(1:len*0.8)
+  test = data(len*0.8:len)
+  
+  fit_lda <- MASS::lda(Y ~ x1 + x2, train)
+  pred_Y = predict(fit_lda, as.matrix(test[,1:2]))$class)
+
+error = length(which(test$Y != pred_Y))/len
+}
+
 myTest1 <- CreateData(8, 20, 3, 103)
 print(errorfunc(myTest1,5,8))
 
