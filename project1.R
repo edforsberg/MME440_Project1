@@ -25,7 +25,7 @@ cbPalette <- c(
   "#9b5f2c")
 #datas<-read.csv("http://mlr.cs.umass.edu/ml/machine-learning-databases/adult/adult.data", header=TRUE, sep=",")
 #------------------------------# create test data
-CreateData <- function(nrOfClasses, nrOfDataPts, std, seed){
+CreateClasses <- function(nrOfClasses, nrOfDataPts, std, seed){
     set.seed(seed)
     n = nrOfDataPts
     nrClass = nrOfClasses
@@ -51,7 +51,7 @@ CreateData <- function(nrOfClasses, nrOfDataPts, std, seed){
 n=20
 nrClass=8
 std = 3
-myData = CreateData(nrClass, n, std, 102)
+myData = CreateClasses(nrClass, n, std, 102)
 
 ggplot(myData, aes(x = x1, y = x2, colour = Y)) +
   geom_point(size = 1.5) +
@@ -129,27 +129,47 @@ errorfunc <- function(data,n,nrcl){
   error = 0
   len = length(data[,1])
   for(i in 1:n){
-    ii = ((i-1)*len/n+1):(i*len/n)
+    ii = rep(((i-1)*len/n)+1):(i*len/n))
     test <- data[ii,]
-    test$Y <- factor(test$Y, levels = 1:nrcl)
+    test$Y <- factor(test$Y, levels = c(1:nrcl))
     train <- data[-ii,]
-    train$Y<-factor(train$Y, levels = 1:nrcl)
+    train$Y<-factor(train$Y, levels = c(1:nrcl))
     pred_test <- lapply(5, function(k) {
       class::knn(
         as.matrix(train[,1:2]),   # training data (variables)
-        as.matrix(test[,1:2]),  # test data (variables)
+        as.matrix(test[,1:2]),                     # test data (variables)
         as.integer(train$Y),  # training data (classes)
         k = k)# k
     })
     pred_Y <- as.factor(do.call(c, pred_test))
-    pred_Y<-factor(pred_Y, levels = 1:nrcl)
     error = error + length(which(test$Y != pred_Y))
   }
   error/len
 }
-myTest1 <- CreateData(8, 20, 3, 103)
-print(errorfunc(myTest1))
 
+
+errorFuncLDA <- function(data, nrClass){
+  error = 0 
+  len = length(data[,1])
+  train = data(1:len*0.8)
+  test = data(len*0.8:len)
+  
+  fit_lda <- MASS::lda(Y ~ x1 + x2, train)
+  pred_Y = predict(fit_lda, as.matrix(test[,1:2]))$class)
+
+error = length(which(test$Y != pred_Y))/len
+}
+
+  
+myTest1 <- CreateClasses(8, 10, 3, 103)
+pred_test <- lapply(5, function(k) {
+  class::knn(
+    as.matrix(myData[,1:2]),   # training data (variables)
+    as.matrix(myTest1[,1:2]),                     # test data (variables)
+    as.integer(myData$Y),  # training data (classes)
+    k = k)                         # k
+})
+pred_Y <- as.factor(do.call(c, pred_test))
 
 
 
