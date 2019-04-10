@@ -25,17 +25,17 @@ cbPalette <- c(
   "#9b5f2c")
 #datas<-read.csv("http://mlr.cs.umass.edu/ml/machine-learning-databases/adult/adult.data", header=TRUE, sep=",")
 #------------------------------# create test data
-CreateClasses <- function(nrOfClasses, nrOfDataPts, var, seed){
+CreateClasses <- function(nrOfClasses, nrOfDataPts, std, seed){
     set.seed(seed)
     n = nrOfDataPts
     nrClass = nrOfClasses
     myData <- data.frame(x1=double(),x2=double(),Y=integer())
     for(i in 1:floor(nrClass/2)){
       k = i*2
-      x11 = rnorm(n, mean = 20+10*(i-1), sd = 3)
-      x21 = rnorm(n, mean = 20, sd = 3)
-      x12 = rnorm(n, mean = 20+10*(i-1), sd = 3)
-      x22 = rnorm(n, mean = 30, sd = 3)
+      x11 = rnorm(n, mean = 20+10*(i-1), sd = std)
+      x21 = rnorm(n, mean = 20, sd = std)
+      x12 = rnorm(n, mean = 20+10*(i-1), sd = std)
+      x22 = rnorm(n, mean = 30, sd = std)
       Y1 = rep((k-1),n)
       Y2 = rep(k,n)
       myData <- data.frame(x1=c(myData$x1,x11,x12),
@@ -44,12 +44,14 @@ CreateClasses <- function(nrOfClasses, nrOfDataPts, var, seed){
     }
     myData$Y<- as.factor(myData$Y)
     colnames(myData)<-c("x1","x2","Y")
-    
-    
+    myData <- myData[sample(nrow(myData)),]
     return(myData)
   }
 #----------Plot points#
-myData = CreateClasses(8, 20, 3, 102)
+n=20
+nrClass=8
+std = 3
+myData = CreateClasses(nrClass, n, std, 102)
 
 ggplot(myData, aes(x = x1, y = x2, colour = Y)) +
   geom_point(size = 1.5) +
@@ -98,7 +100,7 @@ ggplot() +
 fit_lda <- MASS::lda(Y ~ x1 + x2, myData)
 myGrid <- expand.grid(x1_arr, x2_arr)
 colnames(myGrid) <- c("x1", "x2")
-myTest <- tibble(
+myGrid <- tibble(
   x1 = rep.int(myGrid[,1], 1),
   x2 = rep.int(myGrid[,2], 1),
   Y = predict(fit_lda, myGrid)$class)
@@ -119,11 +121,31 @@ ggplot() +
   scale_y_continuous(TeX("x_2"), lim = c(10, 40), expand = c(0, 0)) +
   theme(legend.position = "right") +
   coord_fixed()
-  ggtitle("LDA")
-  
+
+#ggtitle("LDA")  
 #----------Errors#
   
-errorfunc <- 
+errorfunc <- function(data,n,nrcl){
+  error = 0
+  len = length(data[,1])
+  for(i in 1:n){
+    ii = rep(((i-1)*len/n)+1:(i*len/n))
+    test <- data[ii,]
+    test$Y <- factor(test:Y, levels = c(1:nrcl))
+    train <- data[-ii,]
+    train$Y<-factor(train:Y, levels = c(1:nrcl))
+    pred_test <- lapply(5, function(k) {
+      class::knn(
+        as.matrix(train[,1:2]),   # training data (variables)
+        as.matrix(test[,1:2]),                     # test data (variables)
+        as.integer(train$Y),  # training data (classes)
+        k = k)# k
+    })
+    pred_Y <- as.factor(do.call(c, pred_test))
+    error = error + length(which(test$Y != pred_Y))
+  }
+  error/len
+}
   
 myTest1 <- CreateClasses(8, 10, 3, 103)
 pred_test <- lapply(5, function(k) {
