@@ -1,21 +1,21 @@
-# Data generation
-x  <- c(2, 4, 6, 10, 20)
-y1 <- x.^2
-y2 <- x
-y3 <- 1/x
-df <- data.frame(x,y1,y2,y3)
+# Generate some data
+x<-c(2, 4, 8, 12, 16, 20); 
+y1<-x*x; 
+y2<-2*y1;
+y3<-x;
+plot(x, y1, type="b", pch=19, col="red", main="", xlab="Number of classes", ylab="Percentage of errors", xaxt='n', ticks=TRUE)
 
+# Add a line
+lines(x, y2, pch=18, col="green", type="b", lty=2)
 
-require(ggplot2)
+# Add a line
+lines(x, y3, pch=18, col="blue", type="b", lty=2)
 
-ggplot(df, aes(x)) +                    # basic graphical object
-  geom_line(aes(y=y1), colour="red") +  # first layer
-  geom_line(aes(y=y2), colour="green")+  # second layer
-  geom_line(aes(y=y3), colour="blue")  # third layer
+xtick<-c(2, 4, 8, 12, 16, 20)
+axis(side=1, at=xtick, labels = FALSE)
+text(x=xtick,  par("usr")[3], 
+     labels = xtick, las=1, srt = 0, pos = 1, xpd = TRUE)
 
-
-g <- ggplot(df, aes(x))
-g <- g + geom_line(aes(y=y1), colour="red")
-g <- g + geom_line(aes(y=y2), colour="green")
-g <- g + geom_line(aes(y=y2), colour="blue")
-g
+# Add a legend
+legend("topleft", legend=c("kNN(k=)", "kNN(k=)", "LDA"),
+       col=c("red", "green", "blue"), lty=1:2, cex=0.8)
