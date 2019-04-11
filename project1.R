@@ -25,6 +25,24 @@ cbPalette <- c(
   "#9b5f2c")
 #datas<-read.csv("http://mlr.cs.umass.edu/ml/machine-learning-databases/adult/adult.data", header=TRUE, sep=",")
 #------------------------------# create test data
+CreateCircleData <- function(nrClass, nrOfDataPts, std, seed){
+  set.seed(seed)
+  n = nrOfDataPts/nrClass
+  myData <- data.frame(x1=double(),x2=double(),Y=integer())
+  for(i in 1:nrClass){
+    x1 = rnorm(n, mean = 10*cos(2*pi*i/nrClass), sd = std)
+    x2 = rnorm(n, mean = 10*sin(2*pi*i/nrClass), sd = std)
+    Y = rep(i,n)
+    myData <- data.frame(x1=c(myData$x1,x1),
+                         x2=c(myData$x2,x2),
+                         Y=c(myData$Y,Y))
+  }
+  myData$Y<- as.factor(myData$Y)
+  colnames(myData)<-c("x1","x2","Y")
+  myData <- myData[sample(nrow(myData)),]
+  return(myData)
+}
+
 CreateData <- function(nrOfClasses, nrOfDataPts, std, seed){
     set.seed(seed)
     n = nrOfDataPts
@@ -48,23 +66,23 @@ CreateData <- function(nrOfClasses, nrOfDataPts, std, seed){
     return(myData)
   }
 #----------Plot points#
-n=20
-nrClass=8
-std = 3
-myData = CreateData(nrClass, n, std, 102)
+n=480
+nrClass=16
+std = 4
+myData = CreateCircleData(nrClass, n, std, 102)
 
 ggplot(myData, aes(x = x1, y = x2, colour = Y)) +
   geom_point(size = 1.5) +
   scale_colour_manual("Class", values = cbPalette) +
-  scale_x_continuous(TeX("x_1"), lim = c(10, 20+5*nrClass), expand = c(0, 0)) +
-  scale_y_continuous(TeX("x_2"), lim = c(10, 40), expand = c(0, 0)) +
+  scale_x_continuous(TeX("x_1"), lim = c(-25, 25), expand = c(0, 0)) +
+  scale_y_continuous(TeX("x_2"), lim = c(-25, 25), expand = c(0, 0)) +
   theme_minimal() +
   theme(legend.position = "right") +
   coord_fixed()
 
 h <- 0.2 
-x1_arr <- seq(10, 20+5*nrClass, by = h)
-x2_arr <- seq(10, 40, by = h)
+x1_arr <- seq(-25, 25, by = h)
+x2_arr <- seq(-25, 25, by = h)
 myGrid <- expand.grid(x1_arr, x2_arr)
 
 pred <- lapply(5, function(k) {
@@ -92,8 +110,8 @@ ggplot() +
   facet_wrap(~ 5, ncol = 1) +
   scale_colour_manual("Class", values = cbPalette) +
   scale_fill_manual("Class", values = cbPalette, guide = FALSE) +
-  scale_x_continuous(TeX("x_1"), lim = c(10, 20+5*nrClass), expand = c(0, 0)) +
-  scale_y_continuous(TeX("x_2"), lim = c(10, 40), expand = c(0, 0)) +
+  scale_x_continuous(TeX("x_1"), lim = c(-25, 25), expand = c(0, 0)) +
+  scale_y_continuous(TeX("x_2"), lim = c(-25, 25), expand = c(0, 0)) +
   theme(legend.position = "right") +
   coord_fixed()
 
@@ -117,8 +135,8 @@ ggplot() +
     data = myData, size = 1.5) +
   scale_colour_manual("Class", values = cbPalette) +
   scale_fill_manual("Class", values = cbPalette, guide = FALSE) +
-  scale_x_continuous(TeX("x_1"), lim = c(10, 20+5*nrClass), expand = c(0, 0)) +
-  scale_y_continuous(TeX("x_2"), lim = c(10, 40), expand = c(0, 0)) +
+  scale_x_continuous(TeX("x_1"), lim = c(-25, 25), expand = c(0, 0)) +
+  scale_y_continuous(TeX("x_2"), lim = c(-25, 25), expand = c(0, 0)) +
   theme(legend.position = "right") +
   coord_fixed()
 
@@ -170,3 +188,5 @@ errorFuncLDA <- function(data,n){
 myTest1 <- CreateData(8, 20, 3, 103)
 print(errorFuncKNN(myTest1,5,5))
 print(errorFuncLDA(myTest1,5))
+
+#-------------------------------#
