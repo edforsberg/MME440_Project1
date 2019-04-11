@@ -190,7 +190,9 @@ print(errorFuncLDA(myTest1,5))
 
 #-------------------------------#
 
-classVector = 1:6*3
+
+
+classVector = 2:20
 nrDataPts = 480
 std = 4
 seed = 1
@@ -198,21 +200,51 @@ nrFolds = 10
 k1 = 4
 k2 = 20
 
-
-calcError <- function(classVector,nrDataPts,std,seed, nrFolds, k1, k2){
+calcError<-function(classVector,nrDataPts,std,seed, nrFolds, k1, k2){
   knnErrors1 <- vector(mode="numeric", length=6)
   knnErrors2 <- vector(mode="numeric", length=6)
-  counter = 0
+  ldaErrors <- vector(mode="numeric", length=6)
+  counter <- 0
   for (i in classVector){
-    counter = counter+1
-    data = CreateData(i,nrDataPts,std,seed)
-    knnErrors1[index] = errorfuncKNN(data, nrFolds,k1)
-    knnErrors2[index] = errorfuncKNN(data, nrFolds,k2)
-    ldaErrors[index] = errorFuncLDA(data, nrFolds)
+    counter <- counter+1
+    data <- CreateCircleData(i,nrDataPts,std,seed)
+    knnErrors1[counter] = round(errorFuncKNN(data, nrFolds,k1)*100, 2)
+    knnErrors2[counter] = round(errorFuncKNN(data, nrFolds,k2)*100, 2)
+    ldaErrors[counter] = round(errorFuncLDA(data, nrFolds)*100, 2)
   }
-  errorData = data.frame(knnErrors1,knnErrors2,ldaErrors)
+  errorData <- data.frame(knnErrors1,knnErrors2,ldaErrors)
   return(errorData)
   
 }
-print(calcError(classVector, nrDataPts, std, seed, nrFolds, k1,k2))
+print(calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2))
 
+
+Create.plot<-function(classVector,k1,k2){
+  nrDataPts = 480
+  std = 4
+  seed = 1
+  # Generate some data
+  x<-classVector; 
+  y1<-calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2)[, 1]; 
+  y2<-calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2)[, 2];
+  y3<-calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2)[, 3];
+  p.plot<-plot(x, y1, type="b", pch=19, col="red", main="Error plot", xlab="Number of classes", ylab="Percentage of errors")#, xaxt='n', ticks=TRUE)
+  
+  # Add a line
+  lines(x, y2, pch=18, col="green", type="b", lty=2)
+  
+  # Add a line
+  lines(x, y3, pch=18, col="blue", type="b", lty=2)
+  
+  #xtick<-c(2, 4, 8, 12, 16, 20)
+  #axis(side=1, at=xtick, labels = FALSE)
+  #text(x=xtick,  par("usr")[3], 
+  #     labels = xtick, las=1, srt = 0, pos = 1, xpd = TRUE)
+  
+  # Add a legend
+  legend("topleft", legend=c("kNN(k=4)", "kNN(k=20)", "LDA"),
+         col=c("red", "green", "blue"), lty=1:2, cex=0.8)
+  return(p.plot)  
+}
+
+Create.plot(2:20, 4, 20)
