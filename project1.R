@@ -30,8 +30,8 @@ CreateCircleData <- function(nrClass, nrOfDataPts, std, seed){
   n = nrOfDataPts/nrClass
   myData <- data.frame(x1=double(),x2=double(),Y=integer())
   for(i in 1:nrClass){
-    x1 = rnorm(n, mean = 10*cos(2*pi*i/nrClass), sd = std)
-    x2 = rnorm(n, mean = 10*sin(2*pi*i/nrClass), sd = std)
+    x1 = rnorm(n, mean = 9*cos(2*pi*i/nrClass), sd = std)
+    x2 = rnorm(n, mean = 9*sin(2*pi*i/nrClass), sd = std)
     Y = rep(i,n)
     myData <- data.frame(x1=c(myData$x1,x1),
                          x2=c(myData$x2,x2),
