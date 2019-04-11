@@ -255,11 +255,57 @@ print(errorFuncLDA(myTest1,5))
 
 #-------------------------------#
 
+
+#----------Errors#
+
+errorFuncKNN <- function(data,n,k){
+  nrcl = nlevels(data$Y)
+  error = 0
+  len = length(data[,1])
+  for(i in 1:n){
+    ii = ((i-1)*len/n+1):(i*len/n)
+    test <- data[ii,]
+    test$Y <- factor(test$Y, levels = 1:nrcl)
+    train <- data[-ii,]
+    train$Y<-factor(train$Y, levels = 1:nrcl)
+    pred_test <- lapply(k, function(k) {
+      class::knn(
+        as.matrix(train[,1:2]),   # training data (variables)
+        as.matrix(test[,1:2]),  # test data (variables)
+        as.integer(train$Y),  # training data (classes)
+        k = k)# k
+    })
+    pred_Y <- as.factor(do.call(c, pred_test))
+    pred_Y<-factor(pred_Y, levels = 1:nrcl)
+    error = error + length(which(test$Y != pred_Y))
+  }
+  error/len
+}
+
+errorFuncLDA <- function(data,n){
+  nrcl = nlevels(data$Y)
+  error = 0 
+  len = length(data[,1])
+  for(i in 1:n){
+    ii = ((i-1)*len/n+1):(i*len/n)
+    test <- data[ii,]
+    test$Y <- factor(test$Y, levels = 1:nrcl)
+    train <- data[-ii,]
+    train$Y<-factor(train$Y, levels = 1:nrcl)
+    fit_lda <- MASS::lda(Y ~ x1 + x2, train)
+    pred_Y = predict(fit_lda, test)$class
+    pred_Y<-factor(pred_Y, levels = 1:nrcl)
+    error = error+length(which(test$Y != pred_Y))
+  }
+  error/len
+}
+
+######n=480#####
 classVector = 2:20
 nrDataPts = 480
 std = 4
-seed = 1
-nrFolds = 5
+seed = 100
+nrFolds = 10
 k1 = 5
 k2 = 20
 
@@ -267,30 +313,29 @@ k2 = 20
 calcError <- function(classVector,nrDataPts,std,seed, nrFolds, k1, k2){
   knnErrors1 <- rep(0,6)
   knnErrors2 <- rep(0,6)
-  ldaErrors <- rep(0.6)
+  ldaErrors <- rep(0,6)
   counter = 0
   for (i in classVector){
     counter = counter+1
-    data = Create9CData(nrDataPts,std,seed)
-    knnErrors1[counter] = errorFuncKNN(data, nrFolds,k1)
-    knnErrors2[counter] = errorFuncKNN(data, nrFolds,k2)
-    ldaErrors[counter] = errorFuncLDA(data, nrFolds)
+    data = CreateCircleData(i,nrDataPts,std,seed)
+    knnErrors1[counter] = round(errorFuncKNN(data, nrFolds,k1)*100, 2)
+    knnErrors2[counter] = round(errorFuncKNN(data, nrFolds,k2)*100, 2)
+    ldaErrors[counter] = round(errorFuncLDA(data, nrFolds)*100, 2)
   }
   errorData = data.frame(knnErrors1,knnErrors2,ldaErrors)
   errorData
 }
-print(calcError(classVector, nrDataPts, std, seed, nrFolds, k1,k2))
+
+calcError(classVector, nrDataPts, std,seed, nrFolds, k1, k2)
 
 Create.plot<-function(classVector,k1,k2){
-  nrDataPts = 480
-  std = 4
-  seed = 1
   # Generate some data
   x<-classVector; 
-  y1<-calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2)[, 1]; 
-  y2<-calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2)[, 2];
-  y3<-calcError(classVector,nrDataPts,std,seed, nrFolds, k1, k2)[, 3];
-  p.plot<-plot(x, y1, type="b", pch=19, col="red", main="Error plot", xlab="Number of classes", ylab="Percentage of errors")#, xaxt='n', ticks=TRUE)
+  df=calcError(classVector, nrDataPts, std, seed, nrFolds, k1,k2)
+  y1<-df[, 1]; 
+  y2<-df[, 2];
+  y3<-df[, 3];
+  p.plot<-plot(x, y1, type="b", pch=19, col="red", main="Error plot(n=480)", xlab="Number of classes", ylab="Percentage of errors")#, xaxt='n', ticks=TRUE)
   
   # Add a line
   lines(x, y2, pch=18, col="green", type="b", lty=2)
@@ -304,10 +349,68 @@ Create.plot<-function(classVector,k1,k2){
   #     labels = xtick, las=1, srt = 0, pos = 1, xpd = TRUE)
   
   # Add a legend
-  legend("topleft", legend=c("kNN(k=4)", "kNN(k=20)", "LDA"),
+  legend("topleft", legend=c("kNN(k=5)", "kNN(k=20)", "LDA"),
          col=c("red", "green", "blue"), lty=1:2, cex=0.8)
   return(p.plot)  
 }
 
-Create.plot(2:20, 4, 20)
+plot1=Create.plot(2:20, 5, 20)
+
+############n=960#############
+classVector = 2:20
+nrDataPts = 960
+std = 4
+seed = 100
+nrFolds = 10
+k1 = 5
+k2 = 20
+
+
+calcError <- function(classVector,nrDataPts,std,seed, nrFolds, k1, k2){
+  knnErrors1 <- rep(0,6)
+  knnErrors2 <- rep(0,6)
+  ldaErrors <- rep(0,6)
+  counter = 0
+  for (i in classVector){
+    counter = counter+1
+    data = CreateCircleData(i,nrDataPts,std,seed)
+    knnErrors1[counter] = round(errorFuncKNN(data, nrFolds,k1)*100, 2)
+    knnErrors2[counter] = round(errorFuncKNN(data, nrFolds,k2)*100, 2)
+    ldaErrors[counter] = round(errorFuncLDA(data, nrFolds)*100, 2)
+  }
+  errorData = data.frame(knnErrors1,knnErrors2,ldaErrors)
+  errorData
+}
+
+calcError(classVector, nrDataPts, std,seed, nrFolds, k1, k2)
+
+Create.plot<-function(classVector,k1,k2){
+  # Generate some data
+  x<-classVector; 
+  df=calcError(classVector, nrDataPts, std, seed, nrFolds, k1,k2)
+  y1<-df[, 1]; 
+  y2<-df[, 2];
+  y3<-df[, 3];
+  p.plot<-plot(x, y1, type="b", pch=19, col="red", main="Error plot(n=960)", xlab="Number of classes", ylab="Percentage of errors")#, xaxt='n', ticks=TRUE)
+  
+  # Add a line
+  lines(x, y2, pch=18, col="green", type="b", lty=2)
+  
+  # Add a line
+  lines(x, y3, pch=18, col="blue", type="b", lty=2)
+  
+  #xtick<-c(2, 4, 8, 12, 16, 20)
+  #axis(side=1, at=xtick, labels = FALSE)
+  #text(x=xtick,  par("usr")[3], 
+  #     labels = xtick, las=1, srt = 0, pos = 1, xpd = TRUE)
+  
+  # Add a legend
+  legend("topleft", legend=c("kNN(k=5)", "kNN(k=20)", "LDA"),
+         col=c("red", "green", "blue"), lty=1:2, cex=0.8)
+  return(p.plot)  
+}
+
+plot2=Create.plot(2:20, 5, 20)
+
+
 
