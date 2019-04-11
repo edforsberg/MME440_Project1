@@ -107,7 +107,6 @@ ggplot() +
   geom_point(
     aes(x = x1, y = x2, colour = Y, fill = Y),
     data = myData, size = 1.5) +
-  facet_wrap(~ 5, ncol = 1) +
   scale_colour_manual("Class", values = cbPalette) +
   scale_fill_manual("Class", values = cbPalette, guide = FALSE) +
   scale_x_continuous(TeX("x_1"), lim = c(-25, 25), expand = c(0, 0)) +
