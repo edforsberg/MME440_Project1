@@ -125,7 +125,7 @@ ggplot() +
 #ggtitle("LDA")  
 #----------Errors#
   
-errorfuncKNN <- function(data,n){
+errorFuncKNN <- function(data,n,k){
   nrcl = nlevels(data$Y)
   error = 0
   len = length(data[,1])
@@ -135,7 +135,7 @@ errorfuncKNN <- function(data,n){
     test$Y <- factor(test$Y, levels = 1:nrcl)
     train <- data[-ii,]
     train$Y<-factor(train$Y, levels = 1:nrcl)
-    pred_test <- lapply(5, function(k) {
+    pred_test <- lapply(k, function(k) {
       class::knn(
         as.matrix(train[,1:2]),   # training data (variables)
         as.matrix(test[,1:2]),  # test data (variables)
@@ -149,22 +149,24 @@ errorfuncKNN <- function(data,n){
   error/len
 }
 
-errorFuncLDA <- function(data){
+errorFuncLDA <- function(data,n){
   nrcl = nlevels(data$Y)
   error = 0 
   len = length(data[,1])
-  train = data(1:len*0.8)
-  test = data(len*0.8:len)
-  
-  fit_lda <- MASS::lda(Y ~ x1 + x2, train)
-  pred_Y = predict(fit_lda, as.matrix(test[,1:2])$class)
-
-error = length(which(test$Y != pred_Y))/len
+  for(i in 1:n){
+    ii = ((i-1)*len/n+1):(i*len/n)
+    test <- data[ii,]
+    test$Y <- factor(test$Y, levels = 1:nrcl)
+    train <- data[-ii,]
+    train$Y<-factor(train$Y, levels = 1:nrcl)
+    fit_lda <- MASS::lda(Y ~ x1 + x2, train)
+    pred_Y = predict(fit_lda, test)$class
+    pred_Y<-factor(pred_Y, levels = 1:nrcl)
+    error = error+length(which(test$Y != pred_Y))
+  }
+  error/len
 }
 
 myTest1 <- CreateData(8, 20, 3, 103)
-print(errorfuncKNN(myTest1,5))
-print(errorFuncLDA(myTest1))
-
-
-
+print(errorFuncKNN(myTest1,5,5))
+print(errorFuncLDA(myTest1,5))
